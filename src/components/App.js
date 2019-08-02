@@ -17,7 +17,8 @@ class App extends Component {
       band: idealBandRatio.reduce((acc, inst) => {acc[inst.name] = []; return acc}, {}),
       demand: idealBandRatio.reduce((acc, inst) => {acc[inst.name] = 0; return acc}, {}),
       idealDiff: [],
-      activeTab: 'all'
+      activeTab: 'all',
+      choiceTotals: [0, 0, 0],
     }
 
     this.moveStudent = this.moveStudent.bind(this);
@@ -35,6 +36,7 @@ class App extends Component {
     }
     if ( prevState.idealRatio !== this.state.idealRatio || prevState.band !== this.state.band) {
       this.updateIdealDiff();
+      this.updateChoiceTotals();
     }
     if(prevState.idealDiff !== this.state.idealDiff) {
       this.updateStudentUtility();
@@ -132,22 +134,37 @@ class App extends Component {
     this.setState({students, nextStudent, nextInstrument, maxDeltaUtility});
   }
 
+  updateChoiceTotals() {
+    const choiceTotals = [0, 0, 0];
+    Object.keys(this.state.band).forEach(instrument => {
+      const students = this.state.band[instrument];
+      students.forEach(student => {
+        instrument === student.firstChoice.instrument && choiceTotals[0]++;
+        student.secondChoice && instrument === student.secondChoice.instrument && choiceTotals[1]++;
+        student.thirdChoice && instrument === student.thirdChoice.instrument && choiceTotals[2]++;
+      })
+    })
+    this.setState({ choiceTotals });
+  }
+
   moveStudent() {
     const {nextStudent, nextInstrument, band, students} = this.state;
-    const prevInstrument = nextStudent.currentInstrument.instrument;
-    const prevBandIndex = this.state.band[prevInstrument].findIndex(student => { 
-      return Object.keys(student).every(key => {
-        return student[key] === nextStudent[key]
-      })
-    });
-    const nStudent = { ...nextStudent };
-    nStudent.currentInstrument = {instrument: nextInstrument, utility: 0}
-    const nBand = { ...band };
-    nBand[prevInstrument] = [...band[prevInstrument].slice(0, prevBandIndex), ...band[prevInstrument].slice(prevBandIndex + 1)];
-    nBand[nextInstrument].push(nStudent);
-    const studentIndex = students.findIndex(student => Object.keys(student).every(key => student[key] === nextStudent[key]));
-    const nStudents = [...students.slice(0, studentIndex), nStudent, ...students.slice(studentIndex + 1)];
-    this.setState({band: nBand, students: nStudents, nextStudent: undefined, nextInstrument: undefined});
+    if (nextStudent) {
+      const prevInstrument = nextStudent.currentInstrument.instrument;
+      const prevBandIndex = this.state.band[prevInstrument].findIndex(student => { 
+        return Object.keys(student).every(key => {
+          return student[key] === nextStudent[key]
+        })
+      });
+      const nStudent = { ...nextStudent };
+      nStudent.currentInstrument = {instrument: nextInstrument, utility: 0}
+      const nBand = { ...band };
+      nBand[prevInstrument] = [...band[prevInstrument].slice(0, prevBandIndex), ...band[prevInstrument].slice(prevBandIndex + 1)];
+      nBand[nextInstrument].push(nStudent);
+      const studentIndex = students.findIndex(student => Object.keys(student).every(key => student[key] === nextStudent[key]));
+      const nStudents = [...students.slice(0, studentIndex), nStudent, ...students.slice(studentIndex + 1)];
+      this.setState({band: nBand, students: nStudents, nextStudent: undefined, nextInstrument: undefined});
+    }
   }
 
   render() {
@@ -156,8 +173,7 @@ class App extends Component {
         <Container>
           <h1 className="text-center">Instrument sorter</h1>
           <hr />
-          <h4 className="text-center">Band Stats</h4>
-          <FormGroup row className="text-center justify-content-center no-gutters">
+          <FormGroup row className="text-center justify-content-center no-gutters bg-light">
             <Col xs="8" sm="6" md="3">
               <div className="bg-light p-2">
                 <h5>Current</h5>
@@ -194,21 +210,20 @@ class App extends Component {
                 })}
               </div>
             </Col>
-            <Col xs="8" sm="6" md="3">
+            <Col xs="8" sm="6" md="3" >
               <div className="bg-light p-2">
-                <h5>Demand</h5>
-                {Object.keys(this.state.demand).map(instrument => {
+                <h5>Choice Pref</h5>
+                {this.state.choiceTotals.map((weight, weightIndex) => {
                   return (
                     <div>
-                      {instrument}: {this.state.demand[instrument]}
+                      Choice {weightIndex + 1}: {weight} ({(weight * 100 / (this.state.choiceTotals.reduce((a,b) => a + b, 0) || 1)).toFixed(1)}%)
                     </div>
                   )
                 })}
               </div>
             </Col>
           </FormGroup>
-          <h4 className="text-center">Parameters</h4>
-          <FormGroup row className="text-center justify-content-center no-gutters">
+          <FormGroup row className="text-center justify-content-center no-gutters bg-light">
             <Col xs="8" sm="6" md="3">
               <div className="bg-light p-2">
                 <h5>Ideal ratio</h5>
@@ -216,6 +231,30 @@ class App extends Component {
                   return (
                     <div>
                       {instrument.name}: {(instrument.ratio * 100).toFixed(2)}%
+                    </div>
+                  )
+                })}
+              </div>
+            </Col>
+            <Col xs="8" sm="6" md="3">
+              <div className="bg-light p-2">
+                <h5>Choice weight</h5>
+                {this.choiceWeights.map((weight, weightIndex) => {
+                  return (
+                    <div>
+                      Choice {weightIndex + 1}: {weight}
+                    </div>
+                  )
+                })}
+              </div>
+            </Col>
+            <Col xs="8" sm="6" md="3">
+              <div className="bg-light p-2">
+                <h5>Demand</h5>
+                {Object.keys(this.state.demand).map(instrument => {
+                  return (
+                    <div>
+                      {instrument}: {this.state.demand[instrument]}
                     </div>
                   )
                 })}
