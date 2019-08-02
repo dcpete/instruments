@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import {Button, Container, FormGroup, Col, Table} from 'reactstrap';
+import {Button, Container, FormGroup, Col, Table, Nav, NavItem, NavLink, TabContent, TabPane} from 'reactstrap';
 
 import { studentData, idealBandRatio } from '../../static/data/symanData';
 
@@ -16,7 +16,8 @@ class App extends Component {
       idealRatio: [],
       band: idealBandRatio.reduce((acc, inst) => {acc[inst.name] = []; return acc}, {}),
       demand: idealBandRatio.reduce((acc, inst) => {acc[inst.name] = 0; return acc}, {}),
-      idealDiff: []
+      idealDiff: [],
+      activeTab: 'all'
     }
 
     this.moveStudent = this.moveStudent.bind(this);
@@ -267,39 +268,102 @@ class App extends Component {
               <hr />
             </div>
           }
-          <h4>All students</h4>
-          <Table responsive striped size='sm'>
-            <thead>
-              <tr>
-                <th>Name</th>
-                <th>Current Inst.</th>
-                <th>Utility (Cur)</th>
-                <th>First Choice</th>
-                <th>Utility (1st)</th>
-                <th>Second Choice</th>
-                <th>Utility (2nd)</th>
-                <th>Third Choice</th>
-                <th>Utility (3rd)</th>
-              </tr>
-            </thead>
-            <tbody>
-              {this.state.students.map((student, studentIndex) => {
-                return (
-                  <tr key={`tr-student-${studentIndex}`}>
-                    <td>{student.name}</td>
-                    <td>{student.currentInstrument.instrument}</td>
-                    <td>{student.currentInstrument.utility}</td>
-                    <td>{student.firstChoice ? student.firstChoice.instrument : ""}</td>
-                    <td>{student.firstChoice ? student.firstChoice.utility : ""}</td>
-                    <td>{student.secondChoice ? student.secondChoice.instrument : ""}</td>
-                    <td>{student.secondChoice ? student.secondChoice.utility : ""}</td>
-                    <td>{student.thirdChoice ? student.thirdChoice.instrument : ""}</td>
-                    <td>{student.thirdChoice ? student.thirdChoice.utility : ""}</td>
+          <h4 className="text-center">Students</h4>
+          <Nav tabs justified className="mb-2">
+            <NavItem>
+              <NavLink
+                className={this.state.activeTab === 'all' && "active"}
+                onClick={() => { this.setState({activeTab: 'all'}); }}
+              >
+                All
+              </NavLink>
+            </NavItem>
+            <NavItem>
+              <NavLink
+                className={this.state.activeTab === 'byInst' && "active"}
+                onClick={() => { this.setState({activeTab: 'byInst'}); }}
+              >
+                By Instrument
+              </NavLink>
+            </NavItem>
+          </Nav>
+          <TabContent activeTab={this.state.activeTab}>
+            <TabPane tabId="all">
+              <Table responsive striped size='sm'>
+                <thead>
+                  <tr>
+                    <th>Name</th>
+                    <th>Current Inst.</th>
+                    <th>Utility (Cur)</th>
+                    <th>First Choice</th>
+                    <th>Utility (1st)</th>
+                    <th>Second Choice</th>
+                    <th>Utility (2nd)</th>
+                    <th>Third Choice</th>
+                    <th>Utility (3rd)</th>
                   </tr>
+                </thead>
+                <tbody>
+                  {this.state.students.map((student, studentIndex) => {
+                    return (
+                      <tr key={`tr-student-${studentIndex}`}>
+                        <td>{student.name}</td>
+                        <td>{student.currentInstrument.instrument}</td>
+                        <td>{student.currentInstrument.utility}</td>
+                        <td>{student.firstChoice ? student.firstChoice.instrument : ""}</td>
+                        <td>{student.firstChoice ? student.firstChoice.utility : ""}</td>
+                        <td>{student.secondChoice ? student.secondChoice.instrument : ""}</td>
+                        <td>{student.secondChoice ? student.secondChoice.utility : ""}</td>
+                        <td>{student.thirdChoice ? student.thirdChoice.instrument : ""}</td>
+                        <td>{student.thirdChoice ? student.thirdChoice.utility : ""}</td>
+                      </tr>
+                    )
+                  })}
+                </tbody>
+              </Table>
+            </TabPane>
+            <TabPane tabId="byInst">
+              {Object.keys(this.state.band).map(instrument => {
+                return (
+                  <div className="mb-5">
+                    <h5>{instrument}</h5>
+                    <Table responsive striped size='sm'>
+                      <thead>
+                        <tr>
+                          <th>Name</th>
+                          <th>Current Inst.</th>
+                          <th>Utility (Cur)</th>
+                          <th>First Choice</th>
+                          <th>Utility (1st)</th>
+                          <th>Second Choice</th>
+                          <th>Utility (2nd)</th>
+                          <th>Third Choice</th>
+                          <th>Utility (3rd)</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {this.state.band[instrument].map((student, studentIndex) => {
+                          return (
+                            <tr key={`tr-student-${studentIndex}`}>
+                              <td>{student.name}</td>
+                              <td>{student.currentInstrument.instrument}</td>
+                              <td>{student.currentInstrument.utility}</td>
+                              <td>{student.firstChoice ? student.firstChoice.instrument : ""}</td>
+                              <td>{student.firstChoice ? student.firstChoice.utility : ""}</td>
+                              <td>{student.secondChoice ? student.secondChoice.instrument : ""}</td>
+                              <td>{student.secondChoice ? student.secondChoice.utility : ""}</td>
+                              <td>{student.thirdChoice ? student.thirdChoice.instrument : ""}</td>
+                              <td>{student.thirdChoice ? student.thirdChoice.utility : ""}</td>
+                            </tr>
+                          )
+                        })}
+                      </tbody>
+                    </Table>
+                  </div>
                 )
               })}
-            </tbody>
-          </Table>
+            </TabPane>
+          </TabContent>
         </Container>
       </div>
     )
