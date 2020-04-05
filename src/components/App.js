@@ -66,6 +66,13 @@ class App extends Component {
     }, [])
   }
 
+  shuffleArray(array) {
+    for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+    }
+  }
+
   updateBand() {
     const band = this.state.band;
     const demand = this.state.demand;
@@ -83,6 +90,9 @@ class App extends Component {
       if (student.thirdChoice) {
         demand[student.thirdChoice.instrument] += this.choiceWeights[2];
       }
+    })
+    Object.keys(band).forEach(instrument => {
+      this.shuffleArray(band[instrument]);
     })
     this.setState({ students, band, demand });
   }
@@ -163,7 +173,7 @@ class App extends Component {
       nBand[nextInstrument].push(nStudent);
       const studentIndex = students.findIndex(student => Object.keys(student).every(key => student[key] === nextStudent[key]));
       const nStudents = [...students.slice(0, studentIndex), nStudent, ...students.slice(studentIndex + 1)];
-      this.setState({band: nBand, students: nStudents, nextStudent: undefined, nextInstrument: undefined});
+      this.setState({band: nBand, students: nStudents, nextStudent: undefined, nextInstrument: undefined, moveAll: undefined});
     }
   }
 
@@ -271,6 +281,14 @@ class App extends Component {
                     onClick={this.moveStudent}
                   >
                     Move student
+                  </Button>
+                </Col>
+                <Col xs="8" sm="6" md="3">
+                  <Button
+                    block
+                    onClick={this.moveStudent}
+                  >
+                    Move all
                   </Button>
                 </Col>
               </FormGroup>
